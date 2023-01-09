@@ -1,31 +1,29 @@
 
 # Table of Contents
 
-1.  [Installation](#orgd92d58e)
-2.  [Usage](#orgadc4d4e)
-    1.  [Version 1](#orge8e2ab9)
-    2.  [Version 2](#org5cfe22f)
+1.  [Installation](#orgc64ab88)
+2.  [Usage](#org32451d6)
+    1.  [Version 1](#orgfc983c2)
+    2.  [Version 2](#org0aca795)
 
 This is the pypi package for Ailiverse AI models
 
 
-<a id="orgd92d58e"></a>
+<a id="orgc64ab88"></a>
 
 # Installation
-
     git clone https://github.com/ailiverse/neucore
     
     cd neucore
     
     pip install .
 
-
-<a id="orgadc4d4e"></a>
+<a id="org32451d6"></a>
 
 # Usage
 
 
-<a id="orge8e2ab9"></a>
+<a id="orgfc983c2"></a>
 
 ## Version 1
 
@@ -35,6 +33,7 @@ This is a simple use case for version 1 models which include
 -   Image Classification
 -   Deep Fake Detection
 
+    ```
     import neucore
     
     email = YOUR_EMAIL_HERE
@@ -60,11 +59,12 @@ This is a simple use case for version 1 models which include
     results = model.infer("hen.jpg")
     
     print(results)
-
+    ```
+    
 **Note you can use the modelID argument when initalizing the neucore model to if you want to use the previous models**
 
 
-<a id="org5cfe22f"></a>
+<a id="org0aca795"></a>
 
 ## Version 2
 
@@ -89,11 +89,10 @@ The following example is for text guided image segmentation
     # authToken = neucore.signIn(email, password)
     
     # defined the model
-    model = neucore.Model(authToken, model="Text_Guided_Segmentation", version="1")
+    model = neucore.Model(authToken, model="Text_Guided_Segmentation", version="2")
     # If you still want to use the same model Id uncomment the following code
-    # model = neucore.Model(authToken, modelID = "YOUR_MODELID_HERE", model="Image_Segmentation", version="1")
+    # model = neucore.Model(authToken, modelID = "YOUR_MODELID_HERE", model="Image_Segmentation", version="2")
     
     results = model.infer("hen.jpg", texts=["hen"])
     
     print(results)
-
