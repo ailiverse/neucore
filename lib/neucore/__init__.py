@@ -13,6 +13,16 @@ from .env import URL_DICT, SIGN_IN_URL, SIGN_UP_URL
 from .uploadUtils import upload_in_chunks, IterableToFileAdapter
 
 def signUp(email, password, confirm_password, organization):
+    """
+    Method for registering a user on Ailiverse API.
+    It will return an authentication token.
+    
+    :param email: (str)
+    :param password: (str)
+    :param confirm_password: (str)
+    :param organization: (str)
+    :return: (str) authentication token
+    """
     data =  { "email": email,
               "password": password,
               "confirm_password": confirm_password,
@@ -26,6 +36,13 @@ def signUp(email, password, confirm_password, organization):
     return response_json['authToken']
 
 def signIn(email, password):
+    """
+    Method for logging in (in case you lost your Authentication Token) on Ailiverse API.
+
+    :param email: (str)
+    :param password: (str)
+    :return: (str) previous authentication token
+    """
     data =  { "email": email,
               "password": password}
 
@@ -39,6 +56,18 @@ def signIn(email, password):
 
 class Model:
     def __init__(self, authToken, modelID=None, model=None, version="1"):
+        '''
+            Method for registering a model using the API
+
+            If modelId is not specified it will generate a new modelId based on the model.
+
+            However is both modelID and model is not specified unable to determine what model to use.
+
+            :param authToken: (str) required
+            :param modelId: (str) optional
+            :param model: (str) optional
+            :param version: (str) optional
+        '''
         self.authToken = authToken
         self.version = version
         # create a new model if modelID is not specified
@@ -62,7 +91,14 @@ class Model:
     def __str__(self):
         return "modelID : {}".format(self.modelID)
     
-    def uploadFile(self, filepath, dataFormat):
+    def uploadFile(self, filepath, dataFormat="default"):
+        '''
+        Method for uploading a compressed file
+
+        :param filepath: (str) The path to the zip file
+        :param dataFormat: (str) the format of the data
+        :return: (bool) indicating that the file has be successfully uploaded else throw exception
+        '''
         if "UPLOAD_URL" not in URL_DICT[self.version]:
             raise Exception("Version {} does not support uploading".format(self.version))
         UPLOAD_URL = URL_DICT[self.version]["UPLOAD_URL"]
@@ -90,8 +126,15 @@ class Model:
         if "detail" not in response_json or response_json["detail"] != "Upload Successful":
             raise Exception(response_json)
         print("File Uploaded")
+        return True
 
     def train(self, epochs=10):
+        '''
+        Method for starting training
+
+        :param epochs: (int) The number of epochs to train the model
+        :return: (dict) The results of the training
+        '''
         if "TRAIN_URL" not in URL_DICT[self.version]:
             raise Exception("Version {} does not support training".format(self.version))
         TRAIN_URL = URL_DICT[self.version]["TRAIN_URL"]
@@ -115,11 +158,17 @@ class Model:
                     bar.set_description("Status: {}".format(dataDict["training"]))
                 else:
                     bar.set_description("Status: {}".format(dataDict["status"]))
-                time.sleep(1)
         if r.json()["training"] != "Done":
             raise Exception(r.json())
 
     def infer(self, imagePath, **kwargs):
+        '''
+        Performing an Inference on a single image
+
+        :param imagePath: (str) The location to the image
+        :param kwargs: (dict) Any additional arguments to be pass to the api
+        :return: (dict) The inference result 
+        '''
         INFER_URL = URL_DICT[self.version]["INFER_URL"]
         with open(imagePath, "rb") as image:
             buff = base64.b64encode(image.read()).decode('utf-8')
@@ -132,7 +181,14 @@ class Model:
                               headers={"Authorization": "Bearer " + self.authToken})
         return r.json()
 
-    def inferAsync(self, imagePaths):
+    def inferAsync(self, imagePaths, **kwargs):
+        '''
+        Performing an Inference on a single image (Async)
+
+        :param imagePaths: (list of str) locations to multiple images
+        :param kwargs: (dict) Any additional arguments to be pass to the api
+        :return: (dict) to indicate if the model has successfully started inference
+        '''
         INFER_ASYNC_URL = URL_DICT[self.version]["INFER_ASYNC_URL"]
         if isinstance(imagePaths, str):
             imagePaths = [imagePaths]
@@ -150,6 +206,11 @@ class Model:
         return r.json()
 
     def getResults(self):
+        '''
+        Get results from the inference
+
+        :return: (dict) The inference result 
+        '''
         RESULTS_URL = URL_DICT[self.version]["RESULTS_URL"]
         r = requests.get(RESULTS_URL, params={"modelID": self.modelID},
                          headers={"Content-type": "application/json",
