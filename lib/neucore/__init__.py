@@ -1,9 +1,6 @@
 from tqdm import tqdm
 from yaspin import yaspin
 
-import aiohttp
-import asyncio
-
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
