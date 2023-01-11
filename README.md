@@ -19,7 +19,7 @@ This is the pypi package for Ailiverse AI models
 <a id="org32451d6"></a>
 
 # Usage
-
+The following are the models implemented
 -   Image Segmentation
 -   Image Classification
 -   Deep Fake Detection
@@ -27,7 +27,6 @@ This is the pypi package for Ailiverse AI models
 
 **Note Text Guided Segmentation does not have training or upload functions**
 
-    ```
     import neucore
     
     email = YOUR_EMAIL_HERE
@@ -53,6 +52,5 @@ This is the pypi package for Ailiverse AI models
     results = model.infer("hen.jpg")
     
     print(results)
-    ```
     
 **Note you can use the modelID argument when initalizing the neucore model to if you want to use the previous models**
