@@ -1,4 +1,8 @@
 from tqdm import tqdm
+from yaspin import yaspin
+
+import aiohttp
+import asyncio
 
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
@@ -13,6 +17,8 @@ from .env import URL_DICT, SIGN_IN_URL, SIGN_UP_URL
 
 from .uploadUtils import upload_in_chunks, IterableToFileAdapter
 
+# ######################### CUSTOM FUNCTIONS ###################
+
 def getSentence(call):
     """
     Return a random pre-defined sentence
@@ -22,6 +28,8 @@ def getSentence(call):
                      "Good to see you again! \N{slightly smiling face}",
                      "Hello again! \N{grinning face with smiling eyes}"]
     return random.choice(sentences)
+
+# ######################### SIGNUP AND SIGNIN FUNCTIONS ###################
 
 def signUp(email, password, confirm_password, organization):
     """
@@ -66,6 +74,7 @@ def signIn(email, password):
     print("{}".format(getSentence("signIn")))
     return response_json['authToken']
 
+# ######################### CLASS ###################
 
 class Model:
     def __init__(self, authToken, modelID=None, model=None):
@@ -94,16 +103,28 @@ class Model:
             print("model loaded with Id : {}".format(modelID))
         self.modelID = modelID
 
-
-
     def createModel(self, authToken, model):
+        """
+        During creation of model, create a spinning wheel
+        """
         CREATE_MODEL_URL = URL_DICT[self.version]["CREATE_MODEL_URL"]
         data =  { "model_type": model}
-        r = requests.post(CREATE_MODEL_URL, data=json.dumps(data), headers={'Authorization': 'Bearer ' + authToken})
-        if "modelID" not in r.json():
-            raise Exception(r.json())
-        modelID = r.json()['modelID']
+        headers = {'Authorization': 'Bearer ' + authToken}
+        json_data = json.dumps(data)
+        with yaspin() as spinner, requests.post(CREATE_MODEL_URL, data=json_data, headers=headers, stream=True) as resp:
+            for line in resp.iter_lines():
+                if not line:
+                    break
+                
+                info = json.loads(line.decode())
+                if "status" in info:
+                    spinner.text = info["status"]
+
+        if "modelID" not in info:
+            raise Exception(info)
+        modelID = info['modelID']
         print("model created with Id : {}".format(modelID))
+
         return modelID
     
     def __str__(self):
@@ -164,11 +185,11 @@ class Model:
                 r = requests.get(STATUS_URL, params={"modelID": self.modelID},
                                  headers={"Content-type": "application/json",
                                           "Authorization": "Bearer " + self.authToken})
-                if r.json() == "No Model Found":
-                    continue
-                if (r.json()['training'] == 'Done'):
-                    break
                 dataDict = r.json()
+                if dataDict == "No Model Found":
+                    continue
+                if (dataDict['training'] == 'Done') or (dataDict.get("status", None) == "Error"):
+                    break
                 bar.update(dataDict["epoch"])
                 if "loss" in dataDict["results"]:
                     bar.set_postfix({'loss': dataDict["results"]["loss"]})
@@ -194,10 +215,16 @@ class Model:
                     "modelID": self.modelID}
             for key,value in kwargs.items():
                 data[key] = value
-            r = requests.post(INFER_URL,
-                              data=data,
-                              headers={"Authorization": "Bearer " + self.authToken})
-        return r.json()
+            headers = {"Authorization": "Bearer " + self.authToken}
+            with yaspin() as spinner, requests.post(INFER_URL, data=data, headers=headers, stream=True) as resp:
+                for line in resp.iter_lines():
+                    if not line:
+                        break
+                    
+                    info = json.loads(line.decode())
+                    if "status" in info:
+                        spinner.text = info["status"]
+        return info
 
     def inferAsync(self, imagePaths, **kwargs):
         '''
@@ -216,12 +243,20 @@ class Model:
                 "modelID": self.modelID}
         for key,value in kwargs.items():
             data[key] = value
-        r = requests.post(INFER_ASYNC_URL,
-                          data=data,
-                          headers={"Authorization": "Bearer " + self.authToken})
+        headers = {"Authorization": "Bearer " + self.authToken}
+        json_data = json.dumps(data)
+        with yaspin() as spinner, requests.post(INFER_ASYNC_URL, data=json_data, headers=headers, stream=True) as resp:
+            for line in resp.iter_lines():
+                if not line:
+                    break
+                    
+                info = json.loads(line.decode())
+                if "status" in info:
+                    spinner.text = info["status"]
+
         for i in range(len(imageBuffs)):
             imageBuffs[i].close()
-        return r.json()
+        return info
 
     def getResults(self):
         '''
