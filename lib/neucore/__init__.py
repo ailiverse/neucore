@@ -6,11 +6,22 @@ from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 import json
 import base64
 import time
+import random
 from pathlib import Path
 
 from .env import URL_DICT, SIGN_IN_URL, SIGN_UP_URL
 
 from .uploadUtils import upload_in_chunks, IterableToFileAdapter
+
+def getSentence(call):
+    """
+    Return a random pre-defined sentence
+    """
+    if call == "signIn":
+        sentences = ["Welcome back to neucore! \N{brain}",
+                     "Good to see you again! \N{slightly smiling face}",
+                     "Hello again! \N{beaming face with smiling eyes}"]
+    return random.choice(sentences)
 
 def signUp(email, password, confirm_password, organization):
     """
@@ -32,7 +43,8 @@ def signUp(email, password, confirm_password, organization):
     response_json = response.json()
     if "authToken" not in response_json:
         raise Exception(response_json)
-
+    
+    print("Welcome to neucore! \N{brain}")
     return response_json['authToken']
 
 def signIn(email, password):
@@ -51,6 +63,7 @@ def signIn(email, password):
     if "authToken" not in response_json:
         raise Exception(response_json)
     
+    print("{}".format(getSentence("signIn")))
     return response_json['authToken']
 
 
@@ -77,7 +90,10 @@ class Model:
         elif modelID is None:
             model = "_".join(model.split(" "))
             modelID = self.createModel(authToken, model)
+        else:
+            print("model loaded with Id : {}".format(modelID))
         self.modelID = modelID
+
 
 
     def createModel(self, authToken, model):
