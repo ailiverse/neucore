@@ -24,6 +24,7 @@ This is the pypi package for Ailiverse AI models
 -   Image Classification
 -   Deep Fake Detection
 -   Text Guided Segmentation
+
 **Note Text Guided Segmentation does not have training or upload functions**
 
     ```
