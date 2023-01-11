@@ -11,7 +11,6 @@ setup(name='neucore',
       install_requires=[
           "requests",
           "tqdm",
-          "aiohttp",
           "yaspin",
           "requests_toolbelt"
       ],
