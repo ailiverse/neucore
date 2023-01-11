@@ -55,7 +55,7 @@ def signIn(email, password):
 
 
 class Model:
-    def __init__(self, authToken, modelID=None, model=None, version="1"):
+    def __init__(self, authToken, modelID=None, model=None):
         '''
             Method for registering a model using the API
 
@@ -69,11 +69,13 @@ class Model:
             :param version: (str) optional
         '''
         self.authToken = authToken
-        self.version = version
+        self.version = "1" # leave the version in for now
+
         # create a new model if modelID is not specified
         if modelID is None and model is None:
             raise Exception("Please specify either modelID or model")
         elif modelID is None:
+            model = "_".join(model.split(" "))
             modelID = self.createModel(authToken, model)
         self.modelID = modelID
 
