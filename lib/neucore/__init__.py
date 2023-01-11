@@ -20,7 +20,7 @@ def getSentence(call):
     if call == "signIn":
         sentences = ["Welcome back to neucore! \N{brain}",
                      "Good to see you again! \N{slightly smiling face}",
-                     "Hello again! \N{beaming face with smiling eyes}"]
+                     "Hello again! \N{grinning face with smiling eyes}"]
     return random.choice(sentences)
 
 def signUp(email, password, confirm_password, organization):
