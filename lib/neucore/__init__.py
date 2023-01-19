@@ -32,44 +32,47 @@ def signUp(email, password, confirm_password, organization):
     """
     Method for registering a user on Ailiverse API.
     It will return an authentication token.
-    
+  
     :param email: (str)
     :param password: (str)
     :param confirm_password: (str)
     :param organization: (str)
     :return: (str) authentication token
     """
-    data =  { "email": email,
-              "password": password,
-              "confirm_password": confirm_password,
-              "organization": organization}
+    print("Please Visit console.ailiverse.com to sign up!")
+    return {"details": "Please Visit console.ailiverse.com to sign up!"}
+#    data =  { "email": email,
+#              "password": password,
+#              "confirm_password": confirm_password,
+#              "organization": organization}
   
-    response = requests.post(SIGN_UP_URL, data=json.dumps(data), headers={"Content-type": "application/json"})
-    response_json = response.json()
-    if "authToken" not in response_json:
-        raise Exception(response_json)
+#     response = requests.post(SIGN_UP_URL, data=json.dumps(data), headers={"Content-type": "application/json"})
+#     response_json = response.json()
+#     if "authToken" not in response_json:
+#         raise Exception(response_json)
     
-    print("Welcome to neucore! \N{brain}")
-    return response_json['authToken']
+#     print("Welcome to neucore! \N{brain}")
+#     return {"details": "Please visit console"}
+#     return response_json['authToken']
 
 def signIn(email, password):
     """
-    Method for logging in (in case you lost your Authentication Token) on Ailiverse API.
-
-    :param email: (str)
+    Method for logging in (in case you lost your Authentication Token) on Ailiverse API.    :param email: (str)
     :param password: (str)
     :return: (str) previous authentication token
     """
-    data =  { "email": email,
-              "password": password}
+    print("Please Visit console.ailiverse.com to retrieve api key")
+    return {"details": "Please Visit console.ailiverse.com to retrieve api key"}
+#     data =  { "email": email,
+#               "password": password}
 
-    response = requests.post(SIGN_IN_URL, data=json.dumps(data), headers={"Content-type": "application/json"})
-    response_json = response.json()
-    if "authToken" not in response_json:
-        raise Exception(response_json)
+#     response = requests.post(SIGN_IN_URL, data=json.dumps(data), headers={"Content-type": "application/json"})
+#     response_json = response.json()
+#     if "authToken" not in response_json:
+#         raise Exception(response_json)
     
-    print("{}".format(getSentence("signIn")))
-    return response_json['authToken']
+#     print("{}".format(getSentence("signIn")))
+#     return response_json['authToken']
 
 # ######################### CLASS ###################
 
