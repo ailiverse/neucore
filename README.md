@@ -29,13 +29,7 @@ The following are the models implemented
 
     import neucore
     
-    email = YOUR_EMAIL_HERE
-    password = YOUR_PASSWORD_HERE
-    confirm_password = YOUR_PASSWORD_HERE
-    organization = YOUR ORGANIZATION HERE
-    
-    # sign up 
-    authToken = neucore.signUp(email, password, confirm_password, organization)
+    authToken = "Your_AuthToken_Here" # visit console.ailiverse.com to obtained your auth token if you have not already
     
     # Uncomment if your email is already registered, however, you've lost your token
     # authToken = neucore.signIn(email, password)
