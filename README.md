@@ -30,10 +30,7 @@ The following are the models implemented
     import neucore
     
     authToken = "Your_AuthToken_Here" # visit console.ailiverse.com to obtained your auth token if you have not already
-    
-    # Uncomment if your email is already registered, however, you've lost your token
-    # authToken = neucore.signIn(email, password)
-    
+
     # defined the model
     model = neucore.Model(authToken, model="Image Segmentation")
     # If you still want to use the same model Id uncomment the following code
