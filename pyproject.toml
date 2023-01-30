@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=42.2.0"]
+
+[project]
+name = "neucore"
+version = "1.0.0"
+authors = [
+  { name="Nicholas Chua", email="nicholas@ailiverse.com" },
+  { name="Burhan Ul Tayyab", email="burhanultayyab@ailiverse.com" }
+]
+description = "A package for Ailiverse AI models"
+readme = "README.md"
+requires-python = ">=3.5"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ailiverse/neucore"
+"Bug Tracker" = "https://github.com/ailiverse/neucore/issues"
