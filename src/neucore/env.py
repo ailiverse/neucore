@@ -28,8 +28,8 @@ CREATE_MODEL_URL="{}/createModelStream".format(url)
 UPLOAD_URL="{}/userUploadStream".format(url)
 STATUS_URL="{}/status".format(url)
 TRAIN_URL="{}/train".format(url)
-INFER_URL="{}/infer_load".format(url)
-INFER_ASYNC_URL="{}/inferAsync_load".format(url)
+INFER_URL="{}/inferStream".format(url)
+INFER_ASYNC_URL="{}/inferAsyncStream".format(url)
 RESULTS_URL="{}/results".format(url)
 
 URL_DICT = {

@@ -203,7 +203,7 @@ class Model:
             for key,value in kwargs.items():
                 data[key] = value
             headers = {"Authorization": "Bearer " + self.authToken}
-            with yaspin() as spinner:
+            with yaspin(text="preparing...") as spinner:
                 resp = requests.post(INFER_URL, data=data, headers=headers, stream=True)
                 for line in resp.iter_lines():
                     if line:
@@ -231,7 +231,7 @@ class Model:
             data[key] = value
         headers = {"Authorization": "Bearer " + self.authToken}
         json_data = json.dumps(data)
-        with yaspin.yaspin() as spinner:
+        with yaspin(text="preparing...") as spinner:
             resp = requests.post(INFER_ASYNC_URL, data=json_data, headers=headers, stream=True)
             for line in resp.iter_lines():
                 if line:
