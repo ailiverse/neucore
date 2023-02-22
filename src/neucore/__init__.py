@@ -175,7 +175,6 @@ class Model:
                     continue
                 if dataDict == "No Model Found":
                     continue
-                print(dataDict)
                 if (dataDict['training'] == 'Done') or (dataDict.get("status", None) == "Error"):
                     break
                 bar.update(dataDict["epoch"])
