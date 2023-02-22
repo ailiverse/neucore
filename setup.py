@@ -2,7 +2,7 @@ import setuptools
 from distutils.core import setup
 
 setup(name='neucore',
-      version='1.0.3',
+      version='1.0.4',
       description='Ailiverse API Package',
       author='Nicholas Chua, Burhan Ul Tayyab',
       author_email='nicholas@ailiverse.com, burhan@ailiverse.com',
