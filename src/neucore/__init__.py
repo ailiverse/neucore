@@ -100,14 +100,13 @@ class Model:
         data =  { "model_type": model}
         headers = {'Authorization': 'Bearer ' + authToken}
         json_data = json.dumps(data)
-        with yaspin() as spinner, requests.post(CREATE_MODEL_URL, data=json_data, headers=headers, stream=True) as resp:
-            for line in resp.iter_lines():
-                if not line:
-                    break
-                
-                info = json.loads(line.decode())
-                if "status" in info:
-                    spinner.text = info["status"]
+        with yaspin(text="preparing...") as spinner:
+            resp = requests.post(CREATE_MODEL_URL, data=json_data, headers=headers, stream=True)
+            for line in resp.iter_lines(delimiter=b"\n"):
+                if line:
+                    info = json.loads(line.decode())
+                    if "status" in info:
+                        spinner.text = info["status"]
 
         if "modelID" not in info:
             raise Exception(info)
@@ -134,27 +133,23 @@ class Model:
         total_size = path.stat().st_size
         filename = path.name
 
-        with tqdm(
-                desc=filename,
-                total=total_size,
-                unit="B",
-                unit_scale=True,
-                unit_divisor=1024,
-        ) as bar:
-            with open(filepath, "rb") as f:
-                fields = {"format": dataFormat, "modelID": self.modelID}
-                fields["file"] = (filename, f)
-                e = MultipartEncoder(fields=fields)
-                m = MultipartEncoderMonitor(
-                    e, lambda monitor: bar.update(monitor.bytes_read - bar.n)
-                )
-                headers = {"Content-Type": m.content_type, 'Authorization': 'Bearer ' + self.authToken}
-                response = requests.post(UPLOAD_URL, data=m, headers=headers)
-                response_json = response.json()
-        if "detail" not in response_json or response_json["detail"] != "Upload Successful":
-            raise Exception(response_json)
-        print("File Uploaded")
-        return True
+        headers = {'Authorization': 'Bearer ' + self.authToken}
+        with open(filepath, "rb") as f:
+            data = {"format": dataFormat, "modelID": self.modelID}
+
+            with yaspin(text="preparing for upload") as spinner:
+                resp = requests.post(UPLOAD_URL, data=data, files={"file": f}, headers=headers, stream=True)
+                for line in resp.iter_lines(delimiter=b"\n"):
+                    if line:
+                        info = json.loads(line.decode())
+                        if "status" in info:
+                            spinner.text = info["status"]
+
+        if info["detail"] == "Upload successful":
+            print("File Uploaded")
+            return True
+        else:
+            return False
 
     def train(self, epochs=10):
         '''
@@ -174,9 +169,13 @@ class Model:
                 r = requests.get(STATUS_URL, params={"modelID": self.modelID},
                                  headers={"Content-type": "application/json",
                                           "Authorization": "Bearer " + self.authToken})
-                dataDict = r.json()
+                try:
+                    dataDict = r.json()
+                except requests.exceptions.JSONDecodeError as e:
+                    continue
                 if dataDict == "No Model Found":
                     continue
+                print(dataDict)
                 if (dataDict['training'] == 'Done') or (dataDict.get("status", None) == "Error"):
                     break
                 bar.update(dataDict["epoch"])
@@ -205,14 +204,13 @@ class Model:
             for key,value in kwargs.items():
                 data[key] = value
             headers = {"Authorization": "Bearer " + self.authToken}
-            with yaspin() as spinner, requests.post(INFER_URL, data=data, headers=headers, stream=True) as resp:
+            with yaspin() as spinner:
+                resp = requests.post(INFER_URL, data=data, headers=headers, stream=True)
                 for line in resp.iter_lines():
-                    if not line:
-                        break
-                    
-                    info = json.loads(line.decode())
-                    if "status" in info:
-                        spinner.text = info["status"]
+                    if line:
+                        info = json.loads(line.decode())
+                        if "status" in info:
+                            spinner.text = info["status"]
         return info
 
     def inferAsync(self, imagePaths, **kwargs):
@@ -234,14 +232,13 @@ class Model:
             data[key] = value
         headers = {"Authorization": "Bearer " + self.authToken}
         json_data = json.dumps(data)
-        with yaspin() as spinner, requests.post(INFER_ASYNC_URL, data=json_data, headers=headers, stream=True) as resp:
+        with yaspin.yaspin() as spinner:
+            resp = requests.post(INFER_ASYNC_URL, data=json_data, headers=headers, stream=True)
             for line in resp.iter_lines():
-                if not line:
-                    break
-                    
-                info = json.loads(line.decode())
-                if "status" in info:
-                    spinner.text = info["status"]
+                if line:
+                    info = json.loads(line.decode())
+                    if "status" in info:
+                        spinner.text = info["status"]
 
         for i in range(len(imageBuffs)):
             imageBuffs[i].close()
