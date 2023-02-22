@@ -24,8 +24,8 @@ url="https://api.ailiverse.com" ## change the url
 
 SIGN_UP_URL="{}/signUp".format(url)
 SIGN_IN_URL="{}/signIn".format(url)
-CREATE_MODEL_URL="{}/createModel_load".format(url)
-UPLOAD_URL="{}/userUpload".format(url)
+CREATE_MODEL_URL="{}/createModelStream".format(url)
+UPLOAD_URL="{}/userUploadStream".format(url)
 STATUS_URL="{}/status".format(url)
 TRAIN_URL="{}/train".format(url)
 INFER_URL="{}/infer_load".format(url)
