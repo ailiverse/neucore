@@ -102,7 +102,7 @@ class Model:
         json_data = json.dumps(data)
         with yaspin(text="preparing...") as spinner:
             resp = requests.post(CREATE_MODEL_URL, data=json_data, headers=headers, stream=True)
-            for line in resp.iter_lines(delimiter=b"\n"):
+            for line in resp.iter_lines(chunk_size=10, delimiter=b"\n"):
                 if line:
                     info = json.loads(line.decode())
                     if "status" in info:
@@ -137,9 +137,28 @@ class Model:
         with open(filepath, "rb") as f:
             data = {"format": dataFormat, "modelID": self.modelID}
 
+            fields = {"format": dataFormat, "modelID": self.modelID}
+            fields["file"] = (filename, f)
+            e = MultipartEncoder(fields=fields)
+            total_size = path.stat().st_size
+
             with yaspin(text="preparing for upload") as spinner:
-                resp = requests.post(UPLOAD_URL, data=data, files={"file": f}, headers=headers, stream=True)
-                for line in resp.iter_lines(delimiter=b"\n"):
+                def updateSpinnerValue(value):
+                    spinner.text = "preparing {}/{}".format(int(value/1024), int(total_size/1024))
+                m = MultipartEncoderMonitor(
+                    e, lambda monitor: updateSpinnerValue(min(monitor.bytes_read, total_size))
+                )
+                headers = {"Content-Type": m.content_type, 'Authorization': 'Bearer ' + self.authToken}
+                resp = requests.post(UPLOAD_URL,
+                                     data=m,
+                                     headers=headers,
+                                     stream=True)
+                # resp = requests.post(UPLOAD_URL,
+                #                      data=data,
+                #                      files={"file": f},
+                #                      headers=headers,
+                #                      stream=True)
+                for line in resp.iter_lines(chunk_size=10, delimiter=b"\n"):
                     if line:
                         info = json.loads(line.decode())
                         if "status" in info:
@@ -163,29 +182,42 @@ class Model:
         TRAIN_URL = URL_DICT[self.version]["TRAIN_URL"]
         STATUS_URL = URL_DICT[self.version]["STATUS_URL"]
         data =  {"epochs": epochs, "modelID": self.modelID}
-        r = requests.post(url=TRAIN_URL, data=json.dumps(data), headers={"Authorization": "Bearer " + self.authToken})
+        with yaspin(text="preparing for training") as spinner:
+            resp = requests.post(url=TRAIN_URL,
+                                 data=json.dumps(data),
+                                 headers={"Authorization": "Bearer " + self.authToken},
+                                 stream=True)
+            for line in resp.iter_lines(chunk_size=10, delimiter=b"\n"):
+                if line:
+                    pass
         with tqdm(total=epochs) as bar:
             while True:
                 r = requests.get(STATUS_URL, params={"modelID": self.modelID},
                                  headers={"Content-type": "application/json",
                                           "Authorization": "Bearer " + self.authToken})
+
                 try:
                     dataDict = r.json()
-                except requests.exceptions.JSONDecodeError as e:
+                    if dataDict == "No Model Found":
+                        continue
+                    if (dataDict['training'] == 'Done') or (dataDict.get("status", None) == "Error"):
+                        break
+                    bar.update(dataDict["epoch"])
+                    if "loss" in dataDict["results"]:
+                        bar.set_postfix({'loss': dataDict["results"]["loss"]})
+                    if "status" not in dataDict or dataDict["status"] == "OK" or dataDict["status"] == "Ok":
+                        bar.set_description("Status: {}".format(dataDict["training"]))
+                    else:
+                        bar.set_description("Status: {}".format(dataDict["status"]))
+                except Exception as e:
                     continue
-                if dataDict == "No Model Found":
-                    continue
-                if (dataDict['training'] == 'Done') or (dataDict.get("status", None) == "Error"):
-                    break
-                bar.update(dataDict["epoch"])
-                if "loss" in dataDict["results"]:
-                    bar.set_postfix({'loss': dataDict["results"]["loss"]})
-                if "status" not in dataDict or dataDict["status"] == "OK" or dataDict["status"] == "Ok":
-                    bar.set_description("Status: {}".format(dataDict["training"]))
-                else:
-                    bar.set_description("Status: {}".format(dataDict["status"]))
-        if r.json()["training"] != "Done":
-            raise Exception(r.json())
+
+            try:
+                if r.json()["training"] != "Done":
+                    raise Exception(r.json())
+            except Exception as e:
+                print("Failed to train")
+
 
     def infer(self, imagePath, **kwargs):
         '''
@@ -205,7 +237,7 @@ class Model:
             headers = {"Authorization": "Bearer " + self.authToken}
             with yaspin(text="preparing...") as spinner:
                 resp = requests.post(INFER_URL, data=data, headers=headers, stream=True)
-                for line in resp.iter_lines():
+                for line in resp.iter_lines(chunk_size=10):
                     if line:
                         info = json.loads(line.decode())
                         if "status" in info:
@@ -233,7 +265,7 @@ class Model:
         json_data = json.dumps(data)
         with yaspin(text="preparing...") as spinner:
             resp = requests.post(INFER_ASYNC_URL, data=json_data, headers=headers, stream=True)
-            for line in resp.iter_lines():
+            for line in resp.iter_lines(chunk_size=10):
                 if line:
                     info = json.loads(line.decode())
                     if "status" in info:
@@ -241,7 +273,10 @@ class Model:
 
         for i in range(len(imageBuffs)):
             imageBuffs[i].close()
-        return info
+
+        print("Inference Started")
+        return True
+
 
     def getResults(self):
         '''
