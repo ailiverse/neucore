@@ -3,7 +3,7 @@ requires = ["setuptools>=42.2.0"]
 
 [project]
 name = "neucore"
-version = "1.0.6"
+version = "1.0.7"
 authors = [
   { name="Nicholas Chua", email="nicholas@ailiverse.com" },
   { name="Burhan Ul Tayyab", email="burhanultayyab@ailiverse.com" }

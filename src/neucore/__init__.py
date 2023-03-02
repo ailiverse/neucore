@@ -164,10 +164,12 @@ class Model:
                         if "status" in info:
                             spinner.text = info["status"]
 
-        if info["detail"] == "Upload successful":
+        print(info)
+        if info.get("detail", None) == "Upload successful":
             print("File Uploaded")
             return True
         else:
+            raise Exception(info)
             return False
 
     def train(self, epochs=10):
@@ -217,6 +219,7 @@ class Model:
                     raise Exception(r.json())
             except Exception as e:
                 print("Failed to train")
+                raise Exception(r)
 
 
     def infer(self, imagePath, **kwargs):
